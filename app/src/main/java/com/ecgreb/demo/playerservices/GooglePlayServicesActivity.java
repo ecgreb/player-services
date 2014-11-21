@@ -5,12 +5,17 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderApi;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 
 
 public class GooglePlayServicesActivity extends Activity implements
@@ -61,6 +66,7 @@ public class GooglePlayServicesActivity extends Activity implements
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     // Optionally, add additional APIs and scopes if required.
+                    .addApi(LocationServices.API)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .build();
@@ -116,6 +122,18 @@ public class GooglePlayServicesActivity extends Activity implements
     public void onConnected(Bundle connectionHint) {
         Log.i(TAG, "GoogleApiClient connected");
         // TODO: Start making API requests.
+        FusedLocationProviderApi api = LocationServices.FusedLocationApi;
+        Location lastLocation = api.getLastLocation(mGoogleApiClient);
+        Log.d("ECG", "Last known location = " + lastLocation);
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setInterval(1000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        api.requestLocationUpdates(mGoogleApiClient, locationRequest, new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                Log.d("ECG", "onLocationChanged = " + location);
+            }
+        });
     }
 
     /**
